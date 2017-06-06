@@ -6,7 +6,7 @@ class PSD:
     
     """PSD Controller"""
 
-    def __init__(self, P=0.0, S=0.0, D=0.0, sumMax=20, timeSample = 20 ):
+    def __init__(self, P=0.0, S=0.0, D=0.0, sumMax=20, timeSample=20, set_point=0 ):
 
         """PSD Initialization"""
 
@@ -14,51 +14,57 @@ class PSD:
         self.sumMax = sumMax
 
         self.sample_time = timeSample
+        self.SetPoint = set_point
 
         # proportional gain
         self.Kp = P
         # sum gain
-        self.Ks = S
+        self.Ti = S
         # difference gain
-        self.Kd = D
+        self.Td = D
 
+        # sum init
         self.sum = 0
 
         self.last_time = 0
         self.last_error = 0
 
+        # reset all variables to 0
         self.reset()
 
-    def Update(self, process_variable):
+    def update(self, process_variable):
+
+        """Update output"""
 
         error = self.SetPoint - process_variable
 
         delta_error = error - self.last_error
 
-        time_now = time.time()
+        while (time.time() - self.last_time) >= self.sample_time:
 
-        if self.last_time == 0:
-            delta_time = 1
-        else:
-            delta_time = time_now - self.last_time
+            time_now = time.time()
 
-        self.last_time = time_now
+            if self.last_time == 0:
+                delta_time = 1
+            else:
+                delta_time = time_now - self.last_time
 
-        self.sum += delta_time * (delta_error/2)
+            self.last_time = time_now
 
-        difference = delta_error / delta_time
+            self.sum += delta_time * (delta_error/2)
 
-        if (self.sum < -self.sumMax):
-            self.sum = -self.sumMax
+            if (self.sum < -self.sumMax):
+                self.sum = -self.sumMax
 
-        if (self.sum > self.sumMax):
-            self.sum = self.sumMax
+            if (self.sum > self.sumMax):
+                self.sum = self.sumMax
 
-        output = (self.Kp * error) + (self.Ks * self.sum) + (self.Kd * difference)
+            # output calculation
+            output = self.Kp * ( error + (self.sum/self.Ti) + ((self.Td/delta_time) * delta_error))
 
-        self.last_error = error
+            self.last_error = error
 
-        return output
+            return output
 
     def setPoint(self, set_point):
 
@@ -86,6 +92,5 @@ class PSD:
         self.last_time = 0
         self.last_error = 0.0
 
-        self.output = 0.0
 
 
