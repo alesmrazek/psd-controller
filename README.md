@@ -1,4 +1,4 @@
-# PSDcontroller
+# PSD controller
 
 Design of the PSD controller as a PID controller for discrete digital systems.
 
