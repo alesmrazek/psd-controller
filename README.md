@@ -1,2 +1,2 @@
 # PSD Controller
-The simple PSD controller implementation in python3.
+Simple PSD controller implementation in python3.
